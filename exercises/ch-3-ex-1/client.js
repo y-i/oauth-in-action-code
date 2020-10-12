@@ -104,7 +104,8 @@ app.get('/callback', function(req, res){
 
 app.get('/fetch_resource', function(req, res) {
 	if (!access_token) {
-		res.render('error', {error: 'Missing Access Token'});
+		console.log(('error', {error: 'Missing Access Token'}));
+		res.redirect('/authorize');
 		return;
 	}
 
@@ -124,7 +125,8 @@ app.get('/fetch_resource', function(req, res) {
 		return;
 	} else {
 		access_token = null;
-		res.render('error', {error: resource.statusCode});
+		console.log('error', {error: resource.statusCode});
+		res.redirect('/authorize');
 		return;
 	}	
 });
