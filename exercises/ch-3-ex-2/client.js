@@ -37,7 +37,8 @@ let state = null;
 
 let access_token = '987tghjkiu6trfghjuytrghj';
 let scope = null;
-let refresh_token = 'j2r3oj32r23rmasd98uhjrk2o3i';
+// let refresh_token = 'j2r3oj32r23rmasd98uhjrk2o3i';
+let refresh_token = 'j2r3oj32r23rma';
 
 app.get('/', function (req, res) {
 	res.render('index', {access_token: access_token, scope: scope, refresh_token: refresh_token});
@@ -181,7 +182,8 @@ const refreshAccessToken = (req, res) => {
 		console.log('No refresh token, asking the user to get a new access token');
 		// tell the user to get a new access token
 		refresh_token = null;
-		res.render('error', {error: 'Unable to refresh token.'});
+		access_token = null;
+		res.redirect('/authorize');
 		return;
 	}
 };
