@@ -1,11 +1,10 @@
-var express = require("express");
-var bodyParser = require('body-parser');
-var cons = require('consolidate');
-var nosql = require('nosql').load('database.nosql');
-var __ = require('underscore');
-var cors = require('cors');
+const express = require("express");
+const bodyParser = require('body-parser');
+const cons = require('consolidate');
+const nosql = require('nosql').load('database.nosql');
+const cors = require('cors');
 
-var app = express();
+const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true })); // support form-encoded bodies (for bearer tokens)
 
@@ -17,12 +16,12 @@ app.set('json spaces', 4);
 app.use('/', express.static('files/protectedResource'));
 app.use(cors());
 
-var resource = {
+const resource = {
 	"name": "Protected Resource",
 	"description": "This data has been protected by OAuth 2.0"
 };
 
-var getAccessToken = function(req, res, next) {
+const getAccessToken = function(req, res, next) {
 	var inToken = null;
 	var auth = req.headers['authorization'];
 	if (auth && auth.toLowerCase().indexOf('bearer') == 0) {
@@ -34,23 +33,21 @@ var getAccessToken = function(req, res, next) {
 	}
 	
 	console.log('Incoming token: %s', inToken);
-	nosql.one(function(token) {
-		if (token.access_token == inToken) {
-			return token;	
-		}
-	}, function(err, token) {
-		if (token) {
-			console.log("We found a matching token: %s", inToken);
-		} else {
-			console.log('No matching token was found.');
-		}
-		req.access_token = token;
-		next();
-		return;
+	nosql.find().make(builder => {
+		builder.where('access_token', inToken);
+		builder.callback((err, [token]) => {
+			if (token) {
+				console.log("We found a matching token: %s", inToken);
+			} else {
+				console.log('No matching token was found.');
+			}
+			req.access_token = token;
+			next();
+		});
 	});
 };
 
-var requireAccessToken = function(req, res, next) {
+const requireAccessToken = function(req, res, next) {
 	if (req.access_token) {
 		next();
 	} else {
@@ -58,19 +55,23 @@ var requireAccessToken = function(req, res, next) {
 	}
 };
 
-var savedWords = [];
+const savedWords = [];
 
 app.get('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "read" scope
-	 */
+	if (!req.access_token.scope.includes('read')) {
+		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="read"');
+		res.status(403).end();
+		return;
+	}
 	res.json({words: savedWords.join(' '), timestamp: Date.now()});
 });
 
 app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "write" scope
-	 */
+	if (!req.access_token.scope.includes('write')) {
+		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="write"');
+		res.status(403).end();
+		return;
+	}
 	if (req.body.word) {
 		savedWords.push(req.body.word);
 	}
@@ -78,9 +79,11 @@ app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
 });
 
 app.delete('/words', getAccessToken, requireAccessToken, function(req, res) {
-	/*
-	 * Make this function require the "delete" scope
-	 */
+	if (!req.access_token.scope.includes('delete')) {
+		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="delete"');
+		res.status(403).end();
+		return;
+	}
 	savedWords.pop();
 	res.status(204).end();
 });
