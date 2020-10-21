@@ -58,7 +58,7 @@ const requireAccessToken = function(req, res, next) {
 const savedWords = [];
 
 app.get('/words', getAccessToken, requireAccessToken, function(req, res) {
-	if (!req.access_token.scope.includes('read')) {
+	if (!req.access_token.scope.includes('read') && !req.access_token.scope.includes('all')) {
 		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="read"');
 		res.status(403).end();
 		return;
@@ -67,7 +67,7 @@ app.get('/words', getAccessToken, requireAccessToken, function(req, res) {
 });
 
 app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
-	if (!req.access_token.scope.includes('write')) {
+	if (!req.access_token.scope.includes('write') && !req.access_token.scope.includes('all')) {
 		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="write"');
 		res.status(403).end();
 		return;
@@ -79,7 +79,7 @@ app.post('/words', getAccessToken, requireAccessToken, function(req, res) {
 });
 
 app.delete('/words', getAccessToken, requireAccessToken, function(req, res) {
-	if (!req.access_token.scope.includes('delete')) {
+	if (!req.access_token.scope.includes('delete') && !req.access_token.scope.includes('all')) {
 		res.set('WWW-Authenticate', 'Bearer realm=localhost:9002, error="insufficient_scope", scope="delete"');
 		res.status(403).end();
 		return;
