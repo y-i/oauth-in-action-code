@@ -54,7 +54,8 @@ app.get('/produce', getAccessToken, requireAccessToken, function(req, res) {
 	const produce = {
 		fruit: [], 
 		veggies: [], 
-		meats: []
+		meats: [],
+		lowcarbs: [],
 	};	
 	if (req.access_token.scope.includes('fruit')) {
 		produce.fruit = ['apple', 'banana', 'kiwi'];
@@ -64,6 +65,9 @@ app.get('/produce', getAccessToken, requireAccessToken, function(req, res) {
 	}
 	if (req.access_token.scope.includes('meats')) {
 		produce.meats = ['bacon', 'steak', 'chicken breast'];
+	}
+	if (req.access_token.scope.includes('lowcarb')) {
+		produce.lowcarbs = ['something lowcarb'];
 	}
 
 	res.json(produce);
