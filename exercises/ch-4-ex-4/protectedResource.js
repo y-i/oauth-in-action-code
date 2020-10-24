@@ -56,6 +56,15 @@ const requireAccessToken = function(req, res, next) {
 	}
 };
 
+const createLimitedObject = (obj, scope) => {
+	const ret = {movies: [], foods: [], music: []};
+	if (scope.includes('movies')) {ret.movies = obj.movies;}
+	if (scope.includes('foods')) {ret.foods = obj.foods;}
+	if (scope.includes('music')) {ret.music = obj.music;}
+
+	return ret;
+};
+
 const aliceFavorites = {
 	'movies': ['The Multidmensional Vector', 'Space Fights', 'Jewelry Boss'],
 	'foods': ['bacon', 'pizza', 'bacon pizza'],
@@ -69,11 +78,11 @@ const bobFavorites = {
 };
 
 app.get('/favorites', getAccessToken, requireAccessToken, function(req, res) {
-	const {user} = req.access_token;
+	const {user, scope} = req.access_token;
 	if (user === 'alice') {
-		res.json({user: 'Alice', favorites: aliceFavorites});
+		res.json({user: 'Alice', favorites: createLimitedObject(aliceFavorites, scope)});
 	} else if (user == 'bob') {
-		res.json({user: 'Bob', favorites: bobFavorites});
+		res.json({user: 'Bob', favorites: createLimitedObject(bobFavorites, scope)});
 	} else {
 		const unknown = {user: 'Unknown', favorites: {movies: [], foods: [], music: []}};
 		res.json(unknown);
